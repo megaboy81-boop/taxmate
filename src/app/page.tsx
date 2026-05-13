@@ -81,6 +81,29 @@ export default function Home() {
               </div>
             </div>
           </Link>
+
+          {/* 해외주식 양도세 */}
+          <Link href="/foreign-stock">
+            <div className="bg-white border-2 border-gray-200 rounded-2xl p-5 cursor-pointer hover:border-green-300 transition-colors group">
+              <div className="flex items-start gap-4">
+                <div className="text-3xl">🌐</div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h2 className="text-lg font-bold text-gray-900">해외주식 양도세</h2>
+                    <span className="text-xs bg-green-50 text-green-600 font-semibold px-2 py-0.5 rounded-full">5월 신고</span>
+                  </div>
+                  <p className="text-sm text-gray-500 mb-2">미국주식 매매 양도세 간편 계산</p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-gray-400">
+                    <span>• 손익통산 자동 계산</span>
+                    <span>• 한국은행 환율 조회</span>
+                    <span>• 기본공제 250만원 반영</span>
+                    <span>• 양도세 22% 산출</span>
+                  </div>
+                </div>
+                <div className="text-gray-300 group-hover:text-green-400 group-hover:translate-x-1 transition-all text-xl mt-1">→</div>
+              </div>
+            </div>
+          </Link>
         </div>
 
         {/* 하단 링크 */}
