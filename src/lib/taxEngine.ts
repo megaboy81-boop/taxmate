@@ -10,7 +10,7 @@ import {
   BOOKKEEPING_TAX_CREDIT_CAP, ELECTRONIC_FILING_TAX_CREDIT, PENSION_CREDIT,
   VAT_GENERAL_RATE, VAT_SIMPLIFIED_THRESHOLD, VAT_EXEMPT_THRESHOLD,
   VAT_SIMPLIFIED_INPUT_CREDIT_RATE, VAT_SIMPLIFIED_THRESHOLD_BY_TYPE, BUSINESS_TYPES,
-  EXPENSE_GROUP_THRESHOLDS, YELLOW_UMBRELLA_LIMITS,
+  EXPENSE_GROUP_THRESHOLDS, STANDARD_EXPENSE_MULTIPLIER, YELLOW_UMBRELLA_LIMITS,
 } from '@/lib/taxData'
 
 const won = (n: number) => Math.round(n).toLocaleString('ko-KR')
@@ -200,11 +200,18 @@ export interface DualComparison {
   warning?: string             // 복식부기 의무·전문직 등 추계 제약 경고
 }
 
-export function getExpenseTier(revenue: number, businessType: BusinessType): ExpenseTier {
+/**
+ * 추계 경비율 구간 판정.
+ * @param priorRevenue 직전연도 수입 (단순/기준 경비율 선택 기준)
+ * @param currentRevenue 당해연도 수입 (복식부기 의무·단순경비율 배제 판정)
+ */
+export function getExpenseTier(priorRevenue: number, currentRevenue: number, businessType: BusinessType): ExpenseTier {
   const group = BUSINESS_TYPES[businessType].group
   const th = EXPENSE_GROUP_THRESHOLDS[group]
-  if (revenue < th.simpleRateCeiling) return 'simple_rate'
-  if (revenue < th.doubleEntryThreshold) return 'standard_rate'
+  // 당해연도 수입이 복식부기 의무 기준 이상이면 단순경비율 배제 (소득세법 시행령 §143)
+  if (currentRevenue >= th.doubleEntryThreshold) return 'bookkeeping'
+  if (priorRevenue < th.simpleRateCeiling) return 'simple_rate'
+  if (priorRevenue < th.doubleEntryThreshold) return 'standard_rate'
   return 'bookkeeping'
 }
 
@@ -216,22 +223,29 @@ export function getTierLabel(tier: ExpenseTier): string {
 
 export function calcByExpenseRate(input: TaxInput): IncomeTaxResult {
   const info = BUSINESS_TYPES[input.businessType]
-  const prior = pos(input.priorYearRevenue) || pos(input.annualRevenue)
-  const tier = getExpenseTier(prior, input.businessType)
+  const revenue = pos(input.annualRevenue)
+  const prior = pos(input.priorYearRevenue) || revenue
+  const tier = getExpenseTier(prior, revenue, input.businessType)
 
   let estimatedExpense: number
   if (tier === 'simple_rate') {
-    estimatedExpense = Math.round(num(input.annualRevenue) * info.simpleRate)
+    estimatedExpense = Math.round(revenue * info.simpleRate)
   } else {
-    // 기준경비율: 주요경비 실액(매입+임차+인건비) + 수입 × 기준경비율
-    estimatedExpense = Math.round(pos(input.majorExpense) + num(input.annualRevenue) * info.standardRate)
+    // 기준경비율 추계소득금액 = min( 주요경비방식, 단순경비율×배율방식 )  [소득세법 시행령 §143 ③]
+    const isDoubleEntry = tier === 'bookkeeping'
+    const stdRate = info.standardRate * (isDoubleEntry ? 0.5 : 1) // 복식부기의무자는 기준경비율 1/2
+    const incomeByMajor = revenue - pos(input.majorExpense) - revenue * stdRate
+    const multiplier = isDoubleEntry ? STANDARD_EXPENSE_MULTIPLIER.doubleEntry : STANDARD_EXPENSE_MULTIPLIER.simpleBook
+    const incomeBySimple = (revenue - revenue * info.simpleRate) * multiplier
+    const grossIncome = Math.max(0, Math.min(incomeByMajor, incomeBySimple))
+    estimatedExpense = Math.round(revenue - grossIncome)
   }
   return calcIncomeTax({ ...input, annualExpense: estimatedExpense })
 }
 
 export function calcDualComparison(input: TaxInput): DualComparison {
   const prior = pos(input.priorYearRevenue) || pos(input.annualRevenue)
-  const tier = getExpenseTier(prior, input.businessType)
+  const tier = getExpenseTier(prior, pos(input.annualRevenue), input.businessType)
   const rateMethod = calcByExpenseRate(input)
   const bookMethod = calcIncomeTax(input)
 

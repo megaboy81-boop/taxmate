@@ -98,12 +98,17 @@ describe('calcByExpenseRate — 경비율 분기', () => {
     expect(r.calculatedTax).toBe(270_000)
   })
 
-  it('직전수입이 기준 이상이면 기준경비율(주요경비 실액 + 수입×기준율) 적용', () => {
-    // service prior 3000만 ≥ 2400만 → 기준경비율 0.17, 주요경비 1000만
+  it('직전수입이 기준 이상이면 기준경비율 — min(주요경비방식, 단순×배율) 적용', () => {
     const r = calcByExpenseRate({ annualRevenue: 30_000_000, annualExpense: 0, businessType: 'service', priorYearRevenue: 30_000_000, majorExpense: 10_000_000 })
-    // 경비 = 1000만 + 3000만×0.17 = 1510만 → 소득 1490만 − 150만 = 과표 1340만 → 6%
+    // 주요경비방식 = 30M−10M−30M×0.17 = 14.9M / 배율방식 = (30M−30M×0.70)×2.8 = 25.2M → min 14.9M
     expect(r.grossIncome).toBe(14_900_000)
     expect(r.calculatedTax).toBe(804_000)
+  })
+  it('당해수입이 복식부기 의무 기준 이상이면 기준경비율(복식부기율 ½) 적용', () => {
+    // service 다군 복식부기 7,500만. 직전 2,000만(단순구간)이나 당해 1억 → bookkeeping
+    const r = calcByExpenseRate({ annualRevenue: 100_000_000, annualExpense: 0, businessType: 'service', priorYearRevenue: 20_000_000, majorExpense: 30_000_000 })
+    // 기준율 0.17×½=0.085. 주요경비방식=100M−30M−8.5M=61.5M / 배율=(30M)×3.4=102M → min 61.5M
+    expect(r.grossIncome).toBe(61_500_000)
   })
 
   it('듀얼비교는 유리한 방식을 선택한다', () => {
@@ -188,17 +193,17 @@ describe('taxCredits — 절세 인텔리전스', () => {
     expect(calcCardIssuanceCredit({ cardAndCashSales: 1_000_000_000, priorYearSupply: 1_500_000_000 }).applicable).toBe(false)
   })
   it('의제매입세액공제 — 음식점 과표 2억이하 9/109 특례 + 한도율', () => {
-    const r = calcDeemedInputCredit({ businessType: 'food', taxBase: 200_000_000, exemptAgriPurchase: 60_000_000 })
+    const r = calcDeemedInputCredit({ businessType: 'food', taxBase: 200_000_000, exemptAgriPurchase: 60_000_000, vatType: 'general' })
     // min(6000만, 2억×70%) = 6000만 → 6000만 × 9/109 (2억 이하 특례)
     expect(r.amount).toBe(Math.round(60_000_000 * 9 / 109))
   })
   it('의제매입세액공제 — 음식점 과표 2억초과는 8/108', () => {
-    const r = calcDeemedInputCredit({ businessType: 'food', taxBase: 300_000_000, exemptAgriPurchase: 50_000_000 })
+    const r = calcDeemedInputCredit({ businessType: 'food', taxBase: 300_000_000, exemptAgriPurchase: 50_000_000, vatType: 'general' })
     // 한도 3억×60%=1.8억, min(5천만,1.8억)=5천만 → 5천만 × 8/108
     expect(r.amount).toBe(Math.round(50_000_000 * 8 / 108))
   })
   it('의제매입세액공제 — 비대상 업종은 미적용', () => {
-    expect(calcDeemedInputCredit({ businessType: 'retail', taxBase: 100_000_000, exemptAgriPurchase: 10_000_000 }).applicable).toBe(false)
+    expect(calcDeemedInputCredit({ businessType: 'retail', taxBase: 100_000_000, exemptAgriPurchase: 10_000_000, vatType: 'general' }).applicable).toBe(false)
   })
   it('의제매입세액공제 — 간이과세자는 배제(2021.7~), 일반만 적용', () => {
     expect(calcDeemedInputCredit({ businessType: 'food', taxBase: 60_000_000, exemptAgriPurchase: 20_000_000, vatType: 'simplified' }).applicable).toBe(false)

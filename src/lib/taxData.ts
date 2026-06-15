@@ -136,6 +136,9 @@ export type BusinessTypeKey = keyof typeof BUSINESS_TYPES
  *  - doubleEntryThreshold: 이 금액 이상이면 복식부기 의무 (미만은 간편장부 대상)
  *  - sincereThreshold: 이 금액 이상이면 성실신고확인대상 [근거] 소득세법 §70의2
  */
+/** 기준경비율 추계소득금액 비교 배율 [근거] 소득세법 시행령 §143 ③ (간편장부 2.8배 / 복식부기의무 3.4배) */
+export const STANDARD_EXPENSE_MULTIPLIER = { simpleBook: 2.8, doubleEntry: 3.4 } as const
+
 export const EXPENSE_GROUP_THRESHOLDS: Record<ExpenseGroup, {
   simpleRateCeiling: number
   doubleEntryThreshold: number
