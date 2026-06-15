@@ -200,6 +200,10 @@ describe('taxCredits — 절세 인텔리전스', () => {
   it('의제매입세액공제 — 비대상 업종은 미적용', () => {
     expect(calcDeemedInputCredit({ businessType: 'retail', taxBase: 100_000_000, exemptAgriPurchase: 10_000_000 }).applicable).toBe(false)
   })
+  it('의제매입세액공제 — 간이과세자는 배제(2021.7~), 일반만 적용', () => {
+    expect(calcDeemedInputCredit({ businessType: 'food', taxBase: 60_000_000, exemptAgriPurchase: 20_000_000, vatType: 'simplified' }).applicable).toBe(false)
+    expect(calcDeemedInputCredit({ businessType: 'food', taxBase: 300_000_000, exemptAgriPurchase: 50_000_000, vatType: 'general' }).applicable).toBe(true)
+  })
   it('중소기업특별세액감면 — 불명확 업종(서비스)은 needs_review 미적용', () => {
     const r = calcSmeReduction({ businessType: 'service', calculatedTax: 10_000_000 })
     expect(r.applicable).toBe(false)

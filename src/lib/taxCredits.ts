@@ -114,6 +114,7 @@ export function calcDeemedInputCredit(opts: {
   businessType: BusinessType
   taxBase: number
   exemptAgriPurchase: number
+  vatType?: 'general' | 'simplified' | 'exempt'   // 간이·면제는 배제(2021.7~)
 }): SavingEstimate {
   const taxBase = safe(opts.taxBase)
   const exemptAgriPurchase = safe(opts.exemptAgriPurchase)
@@ -121,6 +122,11 @@ export function calcDeemedInputCredit(opts: {
   const basis = '부가법 §42'
   const isFood = opts.businessType === 'food'
   const isManuf = opts.businessType === 'manufacturing'
+
+  // 간이·면제 과세자는 의제매입세액공제 배제 (2021.7.1~). 일반과세자만 적용.
+  if (opts.vatType && opts.vatType !== 'general') {
+    return { applicable: false, amount: 0, label, basis, note: '2021.7.1 이후 간이과세자는 의제매입세액공제가 배제됩니다(일반과세자만 적용).', steps: [] }
+  }
 
   if (!isFood && !isManuf) {
     return { applicable: false, amount: 0, label, basis, note: '음식점업·제조업에서 면세 농수산물을 원재료로 사용할 때 적용됩니다.', steps: [] }

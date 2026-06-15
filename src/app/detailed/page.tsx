@@ -36,7 +36,7 @@ function diagnose(p: DiagInput) {
   const credits: SavingEstimate[] = [
     calcSmeReduction({ businessType: p.businessType, calculatedTax: incomeTax.calculatedTax, region: p.region }),
     calcCardIssuanceCredit({ cardAndCashSales: Math.round(p.revenue * 0.8), priorYearSupply: p.priorRevenue, businessType: p.businessType, payableVat: vat.estimatedVat }),
-    calcDeemedInputCredit({ businessType: p.businessType, taxBase: p.revenue, exemptAgriPurchase: p.businessType === 'food' ? Math.round(p.revenue * 0.3) : 0 }),
+    calcDeemedInputCredit({ businessType: p.businessType, taxBase: p.revenue, exemptAgriPurchase: p.businessType === 'food' ? Math.round(p.revenue * 0.3) : 0, vatType: vat.vatType }),
   ].filter(c => c.applicable)
   // 세금 적립 알리미: 이미 계산된 값들의 합 (신규 계산 없음)
   const annualBurden = incomeTax.totalTax + vat.estimatedVat + insurance.annualHealth + insurance.annualPension
