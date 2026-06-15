@@ -267,5 +267,11 @@ export const SOCIAL_INSURANCE = {
   nationalPensionFloor: 400_000,
 } as const
 
-/** 간이과세 배제 업종 [근거] 부가법 시행령 §109 — 매출과 무관하게 일반과세 */
-export const VAT_SIMPLIFIED_EXCLUDED: BusinessTypeKey[] = ['real_estate']
+/**
+ * 업종별 간이과세 기준금액 (직전연도 공급대가) [근거] 부가법 §61, 시행령 §109
+ * 부동산임대업·과세유흥장소는 4,800만원 이상이면 간이배제(일반과세). 일반 업종은 1.04억.
+ * (해당 업종은 4,800만원 미만일 때만 간이과세 → 동시에 납부면제 구간)
+ */
+export const VAT_SIMPLIFIED_THRESHOLD_BY_TYPE: Partial<Record<BusinessTypeKey, number>> = {
+  real_estate: 48_000_000,
+}

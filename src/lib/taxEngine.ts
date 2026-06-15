@@ -9,7 +9,7 @@ import {
   CHILD_TAX_CREDIT, STANDARD_TAX_CREDIT, BOOKKEEPING_TAX_CREDIT_RATE,
   BOOKKEEPING_TAX_CREDIT_CAP, ELECTRONIC_FILING_TAX_CREDIT, PENSION_CREDIT,
   VAT_GENERAL_RATE, VAT_SIMPLIFIED_THRESHOLD, VAT_EXEMPT_THRESHOLD,
-  VAT_SIMPLIFIED_INPUT_CREDIT_RATE, VAT_SIMPLIFIED_EXCLUDED, BUSINESS_TYPES,
+  VAT_SIMPLIFIED_INPUT_CREDIT_RATE, VAT_SIMPLIFIED_THRESHOLD_BY_TYPE, BUSINESS_TYPES,
   EXPENSE_GROUP_THRESHOLDS, YELLOW_UMBRELLA_LIMITS,
 } from '@/lib/taxData'
 
@@ -267,14 +267,15 @@ export function calcVat(revenue: number, businessType: BusinessType, purchaseAmo
   const rev = pos(revenue)          // 공급대가(부가세 포함)
   const purchase = pos(purchaseAmount)
   const info = BUSINESS_TYPES[businessType]
-  const simplifiedExcluded = VAT_SIMPLIFIED_EXCLUDED.includes(businessType)
+  // 업종별 간이 기준 (부동산임대 등은 4,800만, 일반 업종은 1.04억)
+  const simpThreshold = VAT_SIMPLIFIED_THRESHOLD_BY_TYPE[businessType] ?? VAT_SIMPLIFIED_THRESHOLD
   const steps: CalcStep[] = []
   let vatType: VatResult['vatType']
   let estimatedVat: number
   let effectiveRate: number
 
-  if (rev >= VAT_SIMPLIFIED_THRESHOLD || simplifiedExcluded) {
-    // 간이과세 기준 이상이거나 간이배제 업종(부동산임대 등)은 일반과세
+  if (rev >= simpThreshold) {
+    // 간이 기준 이상 → 일반과세
     vatType = 'general'
     // 공급대가(부가세 포함) → 매출세액 = 공급대가 ÷ 11
     const salesVat = rev / 11

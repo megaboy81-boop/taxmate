@@ -132,9 +132,9 @@ describe('calcVat — 부가가치세', () => {
     expect(r.vatType).toBe('general')
     expect(r.estimatedVat).toBe(Math.round(200_000_000 / 11))
   })
-  it('부동산임대업은 간이배제 — 매출 무관 일반과세', () => {
-    const r = calcVat(40_000_000, 'real_estate')
-    expect(r.vatType).toBe('general')
+  it('부동산임대업 간이 기준은 4,800만 — 이상 일반, 미만 면제', () => {
+    expect(calcVat(50_000_000, 'real_estate').vatType).toBe('general')   // 4800만 이상 → 일반
+    expect(calcVat(40_000_000, 'real_estate').vatType).toBe('exempt')    // 4800만 미만 → 간이(납부면제)
   })
   it('4800만 미만은 납부면제 (배제업종 아닌 경우)', () => {
     const r = calcVat(40_000_000, 'food')
@@ -270,7 +270,8 @@ describe('compliance', () => {
     expect(assessCompliance({ annualRevenue: 40_000_000, businessType: 'service' }).vatType).toBe('exempt')
     expect(assessCompliance({ annualRevenue: 50_000_000, businessType: 'service' }).vatType).toBe('simplified')
     expect(assessCompliance({ annualRevenue: 200_000_000, businessType: 'service' }).vatType).toBe('general')
-    expect(assessCompliance({ annualRevenue: 40_000_000, businessType: 'real_estate' }).vatType).toBe('general')
+    expect(assessCompliance({ annualRevenue: 40_000_000, businessType: 'real_estate' }).vatType).toBe('exempt')
+    expect(assessCompliance({ annualRevenue: 60_000_000, businessType: 'real_estate' }).vatType).toBe('general')
   })
   it('성실신고확인대상 판정 (다군 5억)', () => {
     expect(assessCompliance({ annualRevenue: 600_000_000, businessType: 'service' }).isSincereTarget).toBe(true)

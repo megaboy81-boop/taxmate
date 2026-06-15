@@ -4,7 +4,7 @@
  */
 import {
   BUSINESS_TYPES, EXPENSE_GROUP_THRESHOLDS,
-  VAT_SIMPLIFIED_THRESHOLD, VAT_EXEMPT_THRESHOLD, VAT_SIMPLIFIED_EXCLUDED,
+  VAT_SIMPLIFIED_THRESHOLD, VAT_EXEMPT_THRESHOLD, VAT_SIMPLIFIED_THRESHOLD_BY_TYPE,
 } from './taxData'
 import type { BusinessType, VatType } from '@/types/tax'
 
@@ -34,11 +34,12 @@ export function assessCompliance(opts: {
 
   // 과세유형 — 직전연도 공급대가 기준으로 판정 (현재 매출은 전망/경계 알림에만 사용)
   const judgeRevenue = prior
-  const simplifiedExcluded = VAT_SIMPLIFIED_EXCLUDED.includes(businessType)
+  const simpThreshold = VAT_SIMPLIFIED_THRESHOLD_BY_TYPE[businessType] ?? VAT_SIMPLIFIED_THRESHOLD
   let vatType: VatType
   let vatTypeLabel: string
-  if (judgeRevenue >= VAT_SIMPLIFIED_THRESHOLD || simplifiedExcluded) {
-    vatType = 'general'; vatTypeLabel = simplifiedExcluded ? '일반과세자(간이배제 업종)' : '일반과세자'
+  if (judgeRevenue >= simpThreshold) {
+    vatType = 'general'
+    vatTypeLabel = simpThreshold < VAT_SIMPLIFIED_THRESHOLD ? '일반과세자(간이배제 업종)' : '일반과세자'
   } else if (judgeRevenue >= VAT_EXEMPT_THRESHOLD) {
     vatType = 'simplified'; vatTypeLabel = '간이과세자'
   } else {
