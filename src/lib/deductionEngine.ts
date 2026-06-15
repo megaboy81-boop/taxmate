@@ -3,7 +3,7 @@ import type { BusinessType } from '@/types/tax'
 
 // 공제 한도표
 const DEDUCTION_LIMITS: Record<DeductionType, { max: number; label: string; description: string; priority: 'high' | 'medium' | 'low' }> = {
-  yellow_umbrella:  { max: 5_000_000,  label: '노란우산공제',      description: '폐업·노령 시 원금+이자 수령, 연 최대 500만원 소득공제',  priority: 'high' },
+  yellow_umbrella:  { max: 6_000_000,  label: '노란우산공제',      description: '폐업·노령 시 원금+이자 수령, 소득별 연 최대 600/400/200만원 소득공제(2025 상향)',  priority: 'high' },
   pension_savings:  { max: 6_000_000,  label: '연금저축',          description: '납입액의 12~15% 세액공제 (총급여 5,500만 이하 15%)',     priority: 'high' },
   irp:              { max: 3_000_000,  label: 'IRP (퇴직연금)',    description: '연금저축과 합산 최대 900만원, 12~15% 세액공제',           priority: 'high' },
   national_pension: { max: 0,          label: '국민연금',          description: '납입액 전액 소득공제 (한도 없음)',                         priority: 'high' },

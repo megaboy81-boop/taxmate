@@ -104,6 +104,29 @@ export default function Home() {
               </div>
             </div>
           </Link>
+
+          {/* 정밀 세금 진단 */}
+          <Link href="/detailed">
+            <div className="bg-white border-2 border-gray-200 rounded-2xl p-5 cursor-pointer hover:border-indigo-300 transition-colors group">
+              <div className="flex items-start gap-4">
+                <div className="text-3xl">🎯</div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h2 className="text-lg font-bold text-gray-900">정밀 세금 진단</h2>
+                    <span className="text-xs bg-indigo-50 text-indigo-600 font-semibold px-2 py-0.5 rounded-full">정확도↑</span>
+                  </div>
+                  <p className="text-sm text-gray-500 mb-2">인적·세액공제까지 반영, 계산 근거 투명 공개</p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-gray-400">
+                    <span>• 인적공제·세액공제 반영</span>
+                    <span>• 법조문 계산 근거 표시</span>
+                    <span>• 절세 공제 자동 진단</span>
+                    <span>• 건보료·신고일정 안내</span>
+                  </div>
+                </div>
+                <div className="text-gray-300 group-hover:text-indigo-400 group-hover:translate-x-1 transition-all text-xl mt-1">→</div>
+              </div>
+            </div>
+          </Link>
         </div>
 
         {/* 하단 링크 */}
